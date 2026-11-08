@@ -1,0 +1,922 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#22170f">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<title>Summer Star Testers</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --wood:#2b1d13; --wood-dk:#1a110b; --ink:#f1e2bd; --muted:#b59a64;
+    --brass-hi:#f6dc8f; --brass:#c79b45; --brass-md:#9c7429; --brass-dk:#5e4316;
+    --gold:#ffbf3a; --blue:#9fd6ff; --green:#46ff7a; --red:#ff3b2f; --amber:#ff9d1c;
+    --panel:#121a23; --line:#2a3644; --parch:#e9e1cc;
+    --grain:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='420' height='420'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.006 0.28' numOctaves='4' seed='7'/%3E%3CfeColorMatrix values='0 0 0 0 0.09 0 0 0 0 0.055 0 0 0 0 0.03 0 0 0 1.1 -0.25'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23f)'/%3E%3C/svg%3E");
+    --brass-face:linear-gradient(160deg,var(--brass-hi) 0%,var(--brass) 22%,var(--brass-md) 52%,#d8b15a 74%,var(--brass-dk) 100%);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;min-height:100%}
+  body{
+    color:var(--ink); font-family:Georgia,"Times New Roman",serif;
+    background:var(--grain), linear-gradient(180deg,#33241a,#22170f);
+    background-color:var(--wood);
+    min-height:100dvh; overscroll-behavior:none;
+    -webkit-tap-highlight-color:transparent; user-select:none; -webkit-user-select:none;
+  }
+  button{font:inherit;cursor:pointer}
+  [hidden]{display:none !important}
+
+  /* ---------- brass building blocks ---------- */
+  .brass{background:var(--brass-face);box-shadow:inset 0 1px 0 rgba(255,240,190,.7),inset 0 -2px 3px rgba(60,35,5,.55),0 2px 4px rgba(0,0,0,.6)}
+  .plate{position:relative;background:var(--brass-face);padding:9px;border-radius:4px;
+    box-shadow:inset 0 2px 0 rgba(255,240,190,.6),inset 0 -3px 4px rgba(60,35,5,.6),0 6px 16px rgba(0,0,0,.65)}
+  .woodpanel{position:relative;border-radius:2px;background:var(--grain),linear-gradient(180deg,#3a281b,#24180f);
+    box-shadow:inset 0 3px 8px rgba(0,0,0,.8),inset 0 0 0 1px rgba(0,0,0,.6);overflow:hidden}
+  .cap{position:absolute;width:40px;height:40px;z-index:3;background:var(--brass-face);
+    clip-path:polygon(28% 0,72% 0,100% 28%,100% 72%,72% 100%,28% 100%,0 72%,0 28%);
+    filter:drop-shadow(0 3px 3px rgba(0,0,0,.6))}
+  .cap::after{content:"";position:absolute;inset:6px;background:linear-gradient(150deg,rgba(255,238,180,.55),rgba(90,60,15,.35));
+    clip-path:inherit}
+  .cap.tl{top:-14px;left:-14px}.cap.tr{top:-14px;right:-14px}.cap.bl{bottom:-14px;left:-14px}.cap.br{bottom:-14px;right:-14px}
+  .etch{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+  .etch *{fill:none;stroke:#b98d3c;stroke-width:2.2;stroke-linecap:square;stroke-linejoin:miter;filter:drop-shadow(0 1px 0 rgba(0,0,0,.85))}
+
+  /* ---------- wake screen ---------- */
+  #wake{min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;padding:24px 16px;text-align:center}
+  #wake .lensbig{width:132px;height:132px}
+  #wakeBtn{padding:16px 30px;border:none;border-radius:6px;color:#2b1a06;font-family:Cinzel,Georgia,serif;font-weight:700;font-size:1.05rem;letter-spacing:.1em;
+    text-shadow:0 1px 0 rgba(255,240,190,.7)}
+  #wakeBtn:active{transform:translateY(1px);filter:brightness(.92)}
+  #support{color:var(--muted);font-size:.9rem;max-width:320px;line-height:1.45;margin:0}
+
+  /* ---------- tester ---------- */
+  #app{display:flex;flex-direction:column;min-height:100dvh;padding:calc(env(safe-area-inset-top) + 14px) 16px calc(env(safe-area-inset-bottom) + 18px);gap:16px}
+  .nameplate{align-self:center;padding:8px 22px;border-radius:3px}
+  .nameplate h1{margin:0;font-family:Cinzel,Georgia,serif;font-weight:700;font-size:1.12rem;letter-spacing:.12em;color:#2e1d07;text-shadow:0 1px 0 rgba(255,238,180,.75)}
+  .modes{display:flex;gap:10px}
+  .modes button{flex:1;padding:11px 6px;border:none;border-radius:4px;color:#3a2609;font-family:Cinzel,Georgia,serif;font-weight:700;font-size:.78rem;letter-spacing:.06em;
+    text-shadow:0 1px 0 rgba(255,238,180,.6);filter:brightness(.62) saturate(.8)}
+  .modes button.on{filter:none}
+  #devicewrap{flex:1;display:flex;align-items:center;justify-content:center;padding:14px 4px}
+  #device{width:100%;max-width:400px}
+  #device .woodpanel{padding:26px 16px 22px}
+  .hint{position:relative;z-index:2;color:var(--muted);font-style:italic;text-align:center;margin:0 0 18px;line-height:1.4;font-size:.92rem;text-shadow:0 1px 0 #000}
+
+  /* lenses */
+  .lens{position:relative;border-radius:50%;padding:7px;background:var(--brass-face);
+    box-shadow:inset 0 2px 0 rgba(255,240,190,.7),inset 0 -3px 4px rgba(60,35,5,.6),0 4px 8px rgba(0,0,0,.7)}
+  .lens::before{content:"";position:absolute;inset:4px;border-radius:50%;border:2px solid rgba(70,45,10,.55)}
+  .dome{position:relative;width:100%;height:100%;border-radius:50%;
+    background:radial-gradient(circle at 34% 28%,rgba(255,255,255,.55),rgba(255,255,255,0) 22%),
+               radial-gradient(circle at 50% 60%,#4a4f55,#24272b 62%,#101214);
+    box-shadow:inset 0 -6px 12px rgba(0,0,0,.7),inset 0 3px 6px rgba(255,255,255,.12);transition:background .35s,box-shadow .35s}
+  .lens.lit-gold .dome{background:radial-gradient(circle at 34% 28%,#fff,rgba(255,255,255,0) 22%),radial-gradient(circle at 50% 55%,#fff1c2,var(--gold) 45%,#b86d06);
+    box-shadow:inset 0 -6px 12px rgba(120,60,0,.5),0 0 26px 10px rgba(255,190,60,.55)}
+  .lens.lit-green .dome{background:radial-gradient(circle at 34% 28%,#fff,rgba(255,255,255,0) 22%),radial-gradient(circle at 50% 55%,#d9ffe2,var(--green) 45%,#0f8a33);
+    box-shadow:inset 0 -6px 12px rgba(0,70,20,.5),0 0 30px 12px rgba(70,255,122,.55)}
+  .lens.lit-blue .dome{background:radial-gradient(circle at 34% 28%,#fff,rgba(255,255,255,0) 22%),radial-gradient(circle at 50% 55%,#f2fbff,var(--blue) 45%,#4f8fbf);
+    box-shadow:inset 0 -6px 12px rgba(20,50,90,.45),0 0 28px 10px rgba(160,215,255,.5)}
+  .lens.lit-red .dome{background:radial-gradient(circle at 34% 28%,#fff,rgba(255,255,255,0) 22%),radial-gradient(circle at 50% 55%,#ffd0cb,var(--red) 45%,#8f1008);
+    box-shadow:inset 0 -6px 12px rgba(90,0,0,.5),0 0 30px 12px rgba(255,60,40,.6);animation:flick .5s steps(2) 3}
+  @keyframes flick{50%{filter:brightness(.55)}}
+  .lens.lit-gold,.lens.lit-green,.lens.lit-blue{animation:pulse 2.4s ease-in-out infinite}
+  @keyframes pulse{50%{filter:brightness(1.12)}}
+
+  /* sockets */
+  .socket{position:relative;padding:7px;border-radius:3px;background:var(--brass-face);
+    box-shadow:inset 0 2px 0 rgba(255,240,190,.65),inset 0 -3px 4px rgba(60,35,5,.6),0 3px 6px rgba(0,0,0,.7)}
+  .well{width:100%;height:100%;display:grid;place-items:center;background:#0e0906;
+    box-shadow:inset 0 5px 10px rgba(0,0,0,.95),inset 0 0 0 1px rgba(0,0,0,.8)}
+  .well .tile{width:88%;height:88%;display:grid;place-items:center;background:var(--parch);border-radius:2px;
+    box-shadow:0 2px 3px rgba(0,0,0,.7),inset 0 0 6px rgba(120,95,50,.35);animation:seat .18s ease-out}
+  .well .tile img{width:86%;height:86%;object-fit:contain}
+  .well .tile .mark{width:36%;height:36%;border:3px solid #6b5a36;transform:rotate(45deg)}
+  @keyframes seat{from{transform:scale(1.12);opacity:.3}to{transform:none;opacity:1}}
+
+  /* amber jewels */
+  .jewel{width:22px;height:22px;border-radius:50%;padding:3px;background:var(--brass-face);box-shadow:0 2px 3px rgba(0,0,0,.7)}
+  .jewel i{display:block;width:100%;height:100%;border-radius:50%;
+    background:radial-gradient(circle at 35% 30%,rgba(255,255,255,.4),rgba(255,255,255,0) 30%),radial-gradient(circle,#5a3510,#2a1606);transition:all .3s}
+  .jewel.on i{background:radial-gradient(circle at 35% 30%,#fff,rgba(255,255,255,0) 30%),radial-gradient(circle,#ffe2a8,var(--amber) 55%,#a85200);
+    box-shadow:0 0 12px 4px rgba(255,150,30,.55)}
+
+  /* layouts */
+  .fire{position:relative;z-index:2;display:flex;justify-content:center;gap:34px}
+  .fire .col{display:flex;flex-direction:column;align-items:center;gap:18px}
+  .fire .lens{width:92px;height:92px}
+  .fire .socket{width:104px;height:104px}
+  .ward{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;gap:18px}
+  .ward .row{display:flex;gap:16px;justify-content:center}
+  .ward .col{display:flex;flex-direction:column;align-items:center;gap:12px}
+  .ward .socket.sm{width:78px;height:78px}
+  .ward .bar{width:calc(100% + 32px);height:16px;border-radius:2px}
+  .ward .warden{display:flex;align-items:center;justify-content:center;gap:22px}
+  .ward .lens{width:118px;height:118px}
+  .ward .socket.lg{width:104px;height:104px}
+
+  #msg{position:fixed;left:16px;right:16px;bottom:calc(env(safe-area-inset-bottom) + 92px);text-align:center;font-family:Cinzel,Georgia,serif;
+    font-weight:700;letter-spacing:.05em;color:var(--brass-hi);text-shadow:0 2px 6px #000,0 0 2px #000;opacity:0;transition:opacity .3s;pointer-events:none;z-index:5;font-size:1rem}
+  #msg.show{opacity:1}
+  #reset{align-self:center;padding:11px 40px;border:none;border-radius:999px;color:#2e1d07;font-family:Cinzel,Georgia,serif;font-weight:700;letter-spacing:.12em;
+    text-shadow:0 1px 0 rgba(255,238,180,.7)}
+  #reset:active,.modes button:active{transform:translateY(1px)}
+
+  /* test pad */
+  #pad{position:fixed;left:0;right:0;bottom:0;z-index:6;display:flex;gap:6px;padding:8px 10px calc(env(safe-area-inset-bottom) + 8px);background:#0d131a;border-top:1px solid var(--line);font-family:system-ui,sans-serif}
+  #pad select{flex:1;min-width:0;background:var(--panel);color:#dfe7ef;border:1px solid var(--line);border-radius:8px;padding:8px;font-size:.9rem}
+  #pad button{background:var(--panel);color:#dfe7ef;border:1px solid var(--line);border-radius:8px;padding:8px 12px;font-size:.9rem}
+  body.padon #app{padding-bottom:calc(env(safe-area-inset-bottom) + 74px)}
+  body.padon #msg{bottom:calc(env(safe-area-inset-bottom) + 150px)}
+
+  /* DM panel (plain, for the DM only) */
+  #dm{position:fixed;inset:0;z-index:10;background:#0d131a;color:#dfe7ef;display:flex;flex-direction:column;font-family:system-ui,-apple-system,sans-serif;user-select:text;-webkit-user-select:text}
+  .dm-head{display:flex;align-items:center;justify-content:space-between;padding:calc(env(safe-area-inset-top) + 10px) 16px 8px}
+  .dm-head strong{font-size:1.05rem}
+  .dm-head button,.btn{background:var(--panel);color:#dfe7ef;border:1px solid var(--line);border-radius:8px;padding:8px 14px}
+  .tabs{display:flex;gap:6px;overflow-x:auto;padding:0 16px 8px;scrollbar-width:none}
+  .tabs::-webkit-scrollbar{display:none}
+  .tabs button{flex:none;background:transparent;color:#8a98a8;border:1px solid var(--line);border-radius:999px;padding:7px 14px;font-size:.88rem}
+  .tabs button.on{color:#0a0e13;background:#ffcf6b;border-color:#ffcf6b}
+  .dm-status{margin:0 16px;padding:10px 12px;border-radius:8px;background:#162130;font-size:.9rem;min-height:1.2em;line-height:1.35}
+  .dm-status:empty{display:none}
+  .dm-body{flex:1;overflow-y:auto;padding:8px 16px calc(env(safe-area-inset-bottom) + 24px);font-size:.92rem}
+  .dm-body h3{font-size:.8rem;text-transform:uppercase;letter-spacing:.08em;color:#8a98a8;margin:18px 0 8px}
+  .note{color:#8a98a8;line-height:1.45;margin:8px 0}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(70px,1fr));gap:8px}
+  .cell{border:1px solid var(--line);border-radius:10px;padding:6px;text-align:center;font-size:.8rem;position:relative;cursor:pointer}
+  .th{aspect-ratio:1;background:var(--parch);border-radius:6px;display:grid;place-items:center;margin-bottom:4px;color:#6b5a36;font-size:1.4rem;overflow:hidden}
+  .th img{width:85%;height:85%;object-fit:contain}
+  .th.sm{width:34px;height:34px;margin:0;flex:none;font-size:.9rem}
+  .x{position:absolute;top:2px;right:2px;width:22px;height:22px;border-radius:50%;border:none;background:#2a1414;color:#ffb3ac;font-size:.85rem;line-height:22px;padding:0}
+  .wrow{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:var(--panel);color:#dfe7ef;border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin-bottom:6px}
+  .wrow.on{border-color:#ffcf6b;box-shadow:inset 0 0 0 1px #ffcf6b}
+  .wrow .wl{flex:1}
+  .wrow .wc{font-family:ui-monospace,monospace;color:#8a98a8;font-size:.85rem}
+  .wrow .wn{min-width:34px;text-align:right;font-variant-numeric:tabular-nums}
+  .wrow.done .wn{color:#3ee27f}
+  .over .wn{color:#ff3b30}
+  .danger{background:#2a1414;color:#ffb3ac;border:1px solid #5a2a2a;border-radius:8px;padding:9px 14px;margin-top:14px}
+  table{width:100%;border-collapse:collapse;font-size:.88rem}
+  th,td{border-bottom:1px solid var(--line);padding:6px 4px;text-align:left;vertical-align:middle}
+  th{color:#8a98a8;font-weight:500;font-size:.78rem;text-transform:uppercase;letter-spacing:.05em}
+  .kv{display:inline-flex;align-items:center;gap:5px;margin-right:6px}
+  .kv .th{width:26px;height:26px;margin:0;font-size:.7rem}
+  .logrow{border-bottom:1px solid var(--line);padding:8px 0;line-height:1.4}
+  .logrow .t{color:#8a98a8;font-size:.8rem}
+  .res-green{color:#3ee27f} .res-blue{color:#a9dcff} .res-red{color:#ff3b30} .res-gold{color:#ffcf6b}
+  .set{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
+  .set input[type=checkbox]{width:22px;height:22px}
+  .btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+
+  /* ---------- prop mode: no words, gem controls ---------- */
+  #app{justify-content:center;gap:22px}
+  #gems{align-self:center;display:flex;align-items:center;gap:26px;padding:10px 24px;border-radius:40px}
+  .gem{position:relative;border:none;background:none;padding:0;display:flex;flex-direction:column;align-items:center;gap:4px;touch-action:none;-webkit-touch-callout:none}
+  .gem .setting{display:block;width:52px;height:52px;border-radius:50%;padding:6px;background:var(--brass-face);
+    box-shadow:inset 0 2px 0 rgba(255,240,190,.7),inset 0 -3px 4px rgba(60,35,5,.6),0 3px 6px rgba(0,0,0,.7)}
+  .gem.small .setting{width:38px;height:38px;padding:5px}
+  .stone{display:block;width:100%;height:100%;border-radius:50%;transition:all .3s}
+  .stone.ruby{background:radial-gradient(circle at 35% 30%,rgba(255,255,255,.45),rgba(255,255,255,0) 28%),radial-gradient(circle at 50% 60%,#7a1020,#3a0610 70%,#1e0308);
+    box-shadow:inset 0 -4px 7px rgba(0,0,0,.7)}
+  .gem.on .stone.ruby{background:radial-gradient(circle at 35% 30%,#fff,rgba(255,255,255,0) 26%),radial-gradient(circle at 50% 55%,#ffb0b8,#e3123a 50%,#7a0618);
+    box-shadow:inset 0 -4px 7px rgba(80,0,10,.5),0 0 18px 6px rgba(240,30,60,.55)}
+  .stone.quartz{background:radial-gradient(circle at 35% 30%,rgba(255,255,255,.6),rgba(255,255,255,0) 30%),radial-gradient(circle at 50% 60%,#8f959b,#4a4f55 65%,#25282c);
+    box-shadow:inset 0 -3px 6px rgba(0,0,0,.6)}
+  .gem:active .stone.quartz{filter:brightness(1.4)}
+  .sigil{width:22px;height:22px}
+  .sigil *{fill:none;stroke:#3a2609;stroke-width:1.8}
+  .sigil .n{fill:#3a2609;stroke:none}
+  #device.reject{animation:reject .42s ease-out}
+  #device.reject .woodpanel::after{content:"";position:absolute;inset:0;background:radial-gradient(circle,rgba(200,30,20,.35),transparent 70%);pointer-events:none;z-index:4}
+  @keyframes reject{0%,100%{transform:none}20%{transform:translateX(-6px)}40%{transform:translateX(5px)}60%{transform:translateX(-3px)}80%{transform:translateX(2px)}}
+  #wake .lensbig{cursor:pointer;animation:breathe 3s ease-in-out infinite}
+  @keyframes breathe{50%{filter:brightness(1.25)}}
+  .gem#reset{padding:0;border-radius:0}
+  #wakeBtn.lens{padding:7px;border-radius:50%;width:150px;height:150px}
+  @media (orientation: landscape){
+    #app{flex-direction:row;align-items:center}
+    #devicewrap{flex:0 1 auto;padding:4px}
+    #device{width:auto;max-width:none}
+    #gems{flex-direction:column;padding:20px 10px}
+    .ward{flex-direction:row;align-items:center;gap:20px}
+    .ward .row{gap:12px}
+    .ward .bar{width:14px;height:220px;align-self:center}
+    .ward .warden{flex-direction:column;gap:16px}
+    .fire{gap:40px}
+  }
+</style>
+</head>
+<body>
+
+<div id="wake">
+  <div class="lens lensbig" id="wakeBtn" role="button" aria-label="Wake"><div class="dome"></div></div>
+  <p id="support" hidden></p>
+</div>
+
+<div id="app" hidden>
+  <div id="devicewrap">
+    <div id="device" class="plate">
+      <span class="cap tl"></span><span class="cap tr"></span><span class="cap bl"></span><span class="cap br"></span>
+      <div class="woodpanel">
+        <svg class="etch" id="etch" preserveAspectRatio="none"></svg>
+        <main id="stage"></main>
+      </div>
+    </div>
+  </div>
+  <nav id="gems" class="brass">
+    <button class="gem" data-mode="fire" aria-label="Fire tester">
+      <span class="setting"><i class="stone ruby"></i></span>
+      <svg class="sigil" viewBox="-12 -12 24 24"><path d="M-3.6 -8.2 A9 9 0 1 0 3.6 -8.2"/><path d="M0 0 V9"/><circle cx="0" cy="-9" r="1.7" class="n"/><circle cx="0" cy="0" r="1.7" class="n"/></svg>
+    </button>
+    <button class="gem small" id="reset" aria-label="Clear">
+      <span class="setting"><i class="stone quartz"></i></span>
+    </button>
+    <button class="gem" data-mode="ward" aria-label="Warding tester">
+      <span class="setting"><i class="stone ruby"></i></span>
+      <svg class="sigil" viewBox="-12 -12 24 24"><circle r="10"/><circle r="7.6"/><path d="M0 -10 V-7.6 M0 10 V7.6 M-10 0 H-7.6 M10 0 H7.6"/><circle r="1.7" class="n"/></svg>
+    </button>
+  </nav>
+</div>
+
+<div id="pad" hidden>
+  <select id="padCode"></select>
+  <button data-tile="A">Tile A</button>
+  <button data-tile="B">Tile B</button>
+</div>
+
+<div id="dm" hidden>
+  <div class="dm-head"><strong>DM tools</strong><button id="dmClose">Close</button></div>
+  <div class="tabs" id="tabs">
+    <button data-tab="images">Rune images</button>
+    <button data-tab="write">Write tags</button>
+    <button data-tab="identify">Identify</button>
+    <button data-tab="key">Answer key</button>
+    <button data-tab="log">Test log</button>
+    <button data-tab="settings">Settings</button>
+  </div>
+  <div class="dm-status" id="dmStatus"></div>
+  <div class="dm-body" id="dmBody"></div>
+</div>
+
+<input type="file" id="imgFile" accept="image/*" hidden>
+<input type="file" id="jsonFile" accept="application/json,.json" hidden>
+
+<script>
+(() => {
+  "use strict";
+
+  /* ---------- Data ----------
+     Values are stored doubled so every number is a whole number (4.5 is stored as 9).
+     Each code is a glyph on a specific ring. Two tiles carry each code. */
+  const PREFIX = "SS:";
+  const CODES = {};
+  const def = (ring, list) => list.forEach(([code, v]) => { CODES[code] = { code, ring, v }; });
+  def(1, [["QX4",0],["M2T",6],["HZ9",12],["R7K",18]]);
+  def(2, [["B3W",0],["N8F",3],["T5J",6],["C4Y",9],["P9D",12],["W6L",15],["F2V",18],["K8G",21]]);
+  def(3, [["D7H",0],["Y3P",2],["L9C",4],["G4N",6],["V2Q",8],["J6B",10],["X8M",12],["S3R",14],["Z5F",16],["E7W",18],["U4K",20],["A9T",22]]);
+  def(4, [["H6S",0],["R3E",9],["N7Z",18],["B9X",27],["T2U",36],["M8A",45],["C5J",54],["Y7L",63]]);
+
+  const INNER_GLYPHS = [0,2,3,4,6,8,9,10,12,14,15,16,18,20,21,22];
+  const WARD_GLYPHS  = [0,9,18,27,36,45,54,63];
+  const SPOKES = [
+    { r1:0,    r2:0,  r3:[0],     w:0  },
+    { r1:null, r2:3,  r3:[2,4],   w:9  },
+    { r1:6,    r2:6,  r3:[6],     w:18 },
+    { r1:null, r2:9,  r3:[8,10],  w:27 },
+    { r1:12,   r2:12, r3:[12],    w:36 },
+    { r1:null, r2:15, r3:[14,16], w:45 },
+    { r1:18,   r2:18, r3:[18],    w:54 },
+    { r1:null, r2:21, r3:[20,22], w:63 },
+  ];
+
+  const fmt = v => String(v);
+  const glyphOf = c => (c.ring === 4 ? "w" : "i") + c.v;
+  const shortLabel = code => { const c = CODES[code]; return c ? (c.ring === 4 ? "W " : "R" + c.ring + " ") + fmt(c.v) : code; };
+  const longLabel = code => { const c = CODES[code]; return c.ring === 4 ? "Warden " + fmt(c.v) : "Ring " + c.ring + ", " + fmt(c.v); };
+  const esc = s => String(s).replace(/[&<>"']/g, ch => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[ch]));
+  const $ = id => document.getElementById(id);
+
+  /* ---------- Storage ---------- */
+  const store = {
+    get(k, d) { try { const v = localStorage.getItem("ss." + k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
+    set(k, v) { try { localStorage.setItem("ss." + k, JSON.stringify(v)); return true; } catch (e) { return false; } }
+  };
+
+  let mode   = store.get("mode", "fire");
+  let mute   = store.get("mute", false);
+  let padOn  = store.get("pad", false);
+  let counts = store.get("counts", {});   // code -> [serials]
+  let log    = store.get("log", []);
+  let images = store.get("images", {});   // glyph id -> data URL
+
+  let test = { fire: [], inner: [], warden: null, done: false, result: null };
+  const dm = { open: false, tab: "images", selected: null, writing: false };
+
+  let reader = null;
+  let nfcStatus = "not started";
+
+  /* ---------- Feedback ---------- */
+  /* ---------- Sound: low, warm and mechanical ----------
+     Everything runs through a soft saturator (adds the "crunch" and lets small
+     phone speakers suggest bass they cannot actually play), a stone-room reverb,
+     and a compressor so nothing clips. */
+  let ac = null, bus = null, verb = null, noiseBuf = null;
+  function audio() {
+    if (ac) return ac;
+    ac = new (window.AudioContext || window.webkitAudioContext)();
+    const comp = ac.createDynamicsCompressor();
+    comp.threshold.value = -16; comp.ratio.value = 4; comp.attack.value = 0.004; comp.release.value = 0.25;
+    const sat = ac.createWaveShaper(), curve = new Float32Array(2048);
+    for (let i = 0; i < 2048; i++) { const x = i / 1024 - 1; curve[i] = Math.tanh(2.6 * x) / Math.tanh(2.6); }
+    sat.curve = curve; sat.oversample = "4x";
+    bus = ac.createGain(); bus.gain.value = 0.9;
+    verb = ac.createConvolver();
+    const len = ac.sampleRate * 1.6, ir = ac.createBuffer(2, len, ac.sampleRate);
+    for (let ch = 0; ch < 2; ch++) {
+      const d = ir.getChannelData(ch);
+      for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 3.2);
+    }
+    verb.buffer = ir;
+    const wet = ac.createGain(); wet.gain.value = 0.32;
+    bus.connect(sat); sat.connect(comp); verb.connect(wet); wet.connect(comp); comp.connect(ac.destination);
+    bus.connect(verb);
+    noiseBuf = ac.createBuffer(1, ac.sampleRate, ac.sampleRate);
+    const nd = noiseBuf.getChannelData(0); for (let i = 0; i < nd.length; i++) nd[i] = Math.random() * 2 - 1;
+    return ac;
+  }
+  const env = (g, t, a, peak, dur) => {
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(peak, t + a);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  };
+  // a pitched body: oscillator through a lowpass, optional pitch drop
+  function voice(t, { f, f2 = f, type = "sine", dur = 0.4, a = 0.005, gain = 0.3, cut = 1200, cut2 = cut, q = 1, detune = 0 }) {
+    const o = ac.createOscillator(), lp = ac.createBiquadFilter(), g = ac.createGain();
+    o.type = type; o.detune.value = detune;
+    o.frequency.setValueAtTime(f, t); if (f2 !== f) o.frequency.exponentialRampToValueAtTime(f2, t + dur * 0.8);
+    lp.type = "lowpass"; lp.Q.value = q;
+    lp.frequency.setValueAtTime(cut, t); if (cut2 !== cut) lp.frequency.exponentialRampToValueAtTime(cut2, t + dur);
+    env(g, t, a, gain, dur);
+    o.connect(lp).connect(g).connect(bus); o.start(t); o.stop(t + dur + 0.05);
+  }
+  // filtered noise: clicks, grit, grinding
+  function grit(t, { dur = 0.08, type = "bandpass", freq = 1800, freq2 = freq, q = 1.2, gain = 0.25, a = 0.002 }) {
+    const s = ac.createBufferSource(), f = ac.createBiquadFilter(), g = ac.createGain();
+    s.buffer = noiseBuf; s.loop = true;
+    f.type = type; f.Q.value = q; f.frequency.setValueAtTime(freq, t);
+    if (freq2 !== freq) f.frequency.exponentialRampToValueAtTime(freq2, t + dur);
+    env(g, t, a, gain, dur);
+    s.connect(f).connect(g).connect(bus); s.start(t, Math.random() * 0.5); s.stop(t + dur + 0.05);
+  }
+  // a struck metal plate: inharmonic partials that ring and fade
+  function plate(t, base, dur = 1.2, gain = 0.07) {
+    [1, 2.76, 5.4, 8.93].forEach((m, i) => voice(t, { f: base * m, dur: dur / (1 + i * 0.6), a: 0.002, gain: gain / (1 + i), cut: 6000 }));
+  }
+  const SFX = {
+    seat() {            // heavy rune dropping into a brass socket
+      const t = audio().currentTime;
+      voice(t, { f: 140, f2: 48, dur: 0.22, gain: 0.9, cut: 500 });
+      grit(t, { dur: 0.05, freq: 2400, q: 0.8, gain: 0.5 });
+      grit(t + 0.012, { dur: 0.12, type: "lowpass", freq: 700, gain: 0.45 });
+      plate(t + 0.01, 310, 0.6, 0.05);
+    },
+    refuse() {          // grinding, the socket will not take it
+      const t = audio().currentTime;
+      voice(t, { f: 62, f2: 50, type: "sawtooth", dur: 0.45, gain: 0.45, cut: 320, q: 4 });
+      grit(t, { dur: 0.42, freq: 380, freq2: 220, q: 3, gain: 0.55 });
+      voice(t, { f: 90, f2: 40, dur: 0.18, gain: 0.7, cut: 400 });
+    },
+    switch() {          // ratchet of gears
+      const t = audio().currentTime;
+      for (let i = 0; i < 4; i++) { grit(t + i * 0.055, { dur: 0.035, freq: 1600 - i * 150, q: 2, gain: 0.28 }); voice(t + i * 0.055, { f: 120, f2: 70, dur: 0.06, gain: 0.25, cut: 400 }); }
+      plate(t + 0.24, 220, 0.9, 0.05);
+    },
+    fire(equal) {       // warm swell, the lamp kindles
+      const t = audio().currentTime + 0.1;
+      const notes = equal ? [110, 110 * 1.5] : [110, 164.8, 220];
+      notes.forEach((f, i) => {
+        voice(t + i * 0.06, { f, type: "sawtooth", dur: 1.6, a: 0.25, gain: 0.16, cut: 180, cut2: 1400, q: 2, detune: -7 });
+        voice(t + i * 0.06, { f, type: "sawtooth", dur: 1.6, a: 0.25, gain: 0.12, cut: 180, cut2: 1400, q: 2, detune: 7 });
+      });
+      voice(t, { f: 55, dur: 1.4, a: 0.15, gain: 0.35, cut: 200 });
+      grit(t, { dur: 0.9, type: "lowpass", freq: 300, freq2: 2500, gain: 0.08, a: 0.3 });
+    },
+    green() {           // it holds: a deep resonant chord settles
+      const t = audio().currentTime + 0.1;
+      [73.4, 110, 146.8, 185].forEach((f, i) => {
+        voice(t + i * 0.09, { f, type: "sawtooth", dur: 2.4, a: 0.2, gain: 0.13, cut: 250, cut2: 1800, q: 3, detune: i % 2 ? 6 : -6 });
+      });
+      voice(t, { f: 36.7, dur: 2.2, a: 0.2, gain: 0.4, cut: 150 });
+      plate(t + 0.35, 293.7, 2.2, 0.06);
+    },
+    blue() {            // starved: the power sags and dies away
+      const t = audio().currentTime + 0.1;
+      voice(t, { f: 98, f2: 61, type: "triangle", dur: 1.4, a: 0.05, gain: 0.32, cut: 600, cut2: 160 });
+      voice(t, { f: 49, f2: 31, dur: 1.4, a: 0.05, gain: 0.35, cut: 200 });
+      grit(t, { dur: 1.0, type: "lowpass", freq: 900, freq2: 120, gain: 0.07, a: 0.05 });
+    },
+    red() {             // it fails: crackling, distorted, angry
+      const t = audio().currentTime + 0.1;
+      for (let i = 0; i < 3; i++) {
+        const s = t + i * 0.32;
+        voice(s, { f: 55, f2: 46, type: "sawtooth", dur: 0.28, gain: 0.4, cut: 900, cut2: 250, q: 6 });
+        voice(s, { f: 58.3, type: "square", dur: 0.28, gain: 0.18, cut: 700 });
+        grit(s, { dur: 0.26, freq: 900, q: 0.7, gain: 0.3 });
+      }
+      for (let i = 0; i < 14; i++) grit(t + Math.random() * 0.9, { dur: 0.015, type: "highpass", freq: 2500, gain: 0.25 });
+    },
+    wake() {            // power rises through the device
+      const t = audio().currentTime;
+      voice(t, { f: 32, f2: 64, type: "sawtooth", dur: 1.6, a: 0.6, gain: 0.25, cut: 120, cut2: 900, q: 5 });
+      voice(t, { f: 48, f2: 96, dur: 1.6, a: 0.5, gain: 0.3, cut: 300 });
+      plate(t + 1.1, 196, 1.6, 0.06);
+    },
+    blip() {            // DM-side confirmation
+      const t = audio().currentTime;
+      voice(t, { f: 330, dur: 0.15, gain: 0.15, cut: 2000 });
+    },
+  };
+  function sfx(name, arg) { if (mute) return; try { SFX[name](arg); } catch (e) {} }
+  const buzz = p => { try { if (navigator.vibrate) navigator.vibrate(p); } catch (e) {} };
+
+  let msgTimer = null;
+  function say(text) {                       // the prop shows no words: a refused rune shakes the device
+    const d = $("device");
+    d.classList.remove("reject"); void d.offsetWidth; d.classList.add("reject");
+    clearTimeout(msgTimer);
+    msgTimer = setTimeout(() => d.classList.remove("reject"), 450);
+    sfx("refuse"); buzz([40, 30, 40]);
+  }
+
+  /* ---------- Test logic ---------- */
+  function parseCode(text) {
+    if (!text) return null;
+    const t = text.trim();
+    if (!t.startsWith(PREFIX)) return null;
+    return t.slice(PREFIX.length).toUpperCase();
+  }
+
+  function clearTest() {
+    test = { fire: [], inner: [], warden: null, done: false, result: null };
+  }
+
+  function seated() { sfx("seat"); buzz(30); }
+
+  function onTag(serial, text) {
+    if (dm.open) { dmTag(serial, text, false); return; }
+    testTag(serial, text);
+  }
+
+  const TOKENS = { FX1: "Mode token: Fire", WX1: "Mode token: Warding" };
+  const labelOf = code => TOKENS[code] || longLabel(code);
+
+  function testTag(serial, text) {
+    const code = parseCode(text);
+    if (code && TOKENS[code]) {               // a mode token switches testers without touching the screen
+      setMode(code === "FX1" ? "fire" : "ward");
+      sfx("switch"); buzz(40);
+      return;
+    }
+    const info = code && CODES[code];
+    if (!info) return;                       // blank or foreign tags do nothing
+    if (!serial) serial = "noserial-" + Date.now() + Math.random();
+    if (test.done) clearTest();
+    const tile = { serial, code, ring: info.ring, v: info.v };
+
+    if (mode === "fire") {
+      if (info.ring === 4) { render(); return say("The rune will not seat."); }
+      if (test.fire.some(t => t.serial === serial)) return say("That rune is already seated.");
+      test.fire.push(tile);
+      seated();
+      if (test.fire.length === 2) resolveFire(); else render();
+    } else {
+      const seatedTiles = test.inner.concat(test.warden ? [test.warden] : []);
+      if (seatedTiles.some(t => t.serial === serial)) return say("That rune is already seated.");
+      if (info.ring === 4) {
+        if (test.warden) { render(); return say("The rune will not seat."); }
+        test.warden = tile;
+      } else {
+        if (test.inner.length >= 3) { render(); return say("The rune will not seat."); }
+        test.inner.push(tile);
+      }
+      seated();
+      if (test.inner.length === 3 && test.warden) resolveWard(); else render();
+    }
+  }
+
+  function resolveFire() {
+    const [a, b] = test.fire;
+    const result = a.v > b.v ? "left" : b.v > a.v ? "right" : "both";
+    test.done = true; test.result = result;
+    addLog({ m: "fire", tiles: test.fire.map(t => t.code), res: result });
+    setTimeout(() => { sfx("fire", result === "both"); buzz(60); }, 120);
+    render();
+  }
+
+  function resolveWard() {
+    const sum = test.inner.reduce((s, t) => s + t.v, 0);
+    const w = test.warden.v;
+    const result = sum < w ? "blue" : sum === w ? "green" : "red";
+    test.done = true; test.result = result;
+    addLog({ m: "ward", tiles: test.inner.map(t => t.code).concat([test.warden.code]), sum, w, res: result });
+    setTimeout(() => {
+      if (result === "green") { sfx("green"); buzz(80); }
+      else if (result === "blue") { sfx("blue"); buzz(40); }
+      else { sfx("red"); buzz([90, 60, 90]); }
+    }, 120);
+    render();
+  }
+
+  function addLog(entry) {
+    log.unshift(Object.assign({ t: Date.now() }, entry));
+    if (log.length > 300) log.length = 300;
+    store.set("log", log);
+  }
+
+  /* ---------- Render tester ---------- */
+  function tileHTML(t) {
+    if (!t) return "";
+    const img = images[glyphOf(t)];
+    return '<div class="tile">' + (img ? '<img src="' + img + '" alt="">' : '<span class="mark"></span>') + "</div>";
+  }
+  const socket = (t, cls = "") => '<div class="socket ' + cls + '"><div class="well">' + tileHTML(t) + "</div></div>";
+  const lens = lit => '<div class="lens ' + (lit ? "lit-" + lit : "") + '"><div class="dome"></div></div>';
+
+  function drawEtch() {
+    const svg = $("etch"), box = svg.getBoundingClientRect();
+    const w = Math.round(box.width), h = Math.round(box.height);
+    if (!w || !h) return;
+    svg.setAttribute("viewBox", "0 0 " + w + " " + h);
+    const cx = w / 2, d = (x, y, s) => '<path d="M' + x + " " + (y - s) + " L" + (x + s) + " " + y + " L" + x + " " + (y + s) + " L" + (x - s) + " " + y + ' Z"/>';
+    let p = '<rect x="9" y="9" width="' + (w - 18) + '" height="' + (h - 18) + '" rx="18"/>';
+    const tall = h > w;
+    if (tall) p += '<path d="M24 ' + (h * 0.32) + " V" + (h * 0.68) + " M" + (w - 24) + " " + (h * 0.32) + " V" + (h * 0.68) + '"/>';
+    p += d(cx, 9, 7) + d(cx, h - 9, 7);
+    p += '<path d="M' + (cx - 60) + " 9 H" + (cx - 20) + " M" + (cx + 20) + " 9 H" + (cx + 60) + '"/>';
+    p += '<path d="M' + (cx - 60) + " " + (h - 9) + " H" + (cx - 20) + " M" + (cx + 20) + " " + (h - 9) + " H" + (cx + 60) + '"/>';
+    p += '<path d="M' + (cx - 14) + " " + (h - 26) + " L" + cx + " " + (h - 16) + " L" + (cx + 14) + " " + (h - 26) + '"/>';
+    if (tall) p += d(24, h * 0.32 - 12, 6) + d(w - 24, h * 0.32 - 12, 6);
+    svg.innerHTML = "<g>" + p + "</g>";
+  }
+
+  function render() {
+    document.querySelectorAll(".gem[data-mode]").forEach(b => b.classList.toggle("on", b.dataset.mode === mode));
+    const r = test.result;
+    let html;
+    if (mode === "fire") {
+      html =
+        '<div class="fire">' +
+          '<div class="col">' + lens(r === "left" || r === "both" ? "gold" : "") + socket(test.fire[0]) + "</div>" +
+          '<div class="col">' + lens(r === "right" || r === "both" ? "gold" : "") + socket(test.fire[1]) + "</div>" +
+        "</div>";
+    } else {
+      html =
+        '<div class="ward">' +
+          '<div class="row">' +
+            [0, 1, 2].map(i => '<div class="col">' + socket(test.inner[i], "sm") +
+              '<div class="jewel ' + (test.inner[i] ? "on" : "") + '"><i></i></div></div>').join("") +
+          "</div>" +
+          '<div class="bar brass"></div>' +
+          '<div class="warden">' + socket(test.warden, "lg") + lens(r) + "</div>" +
+        "</div>";
+    }
+    document.body.dataset.result = "";
+    $("stage").innerHTML = html;
+    document.body.classList.toggle("padon", padOn);
+    $("pad").hidden = !padOn || dm.open;
+    requestAnimationFrame(drawEtch);
+  }
+  window.addEventListener("resize", () => requestAnimationFrame(drawEtch));
+
+  function setMode(m) {
+    mode = m; store.set("mode", m);
+    clearTest(); render();
+  }
+
+  /* ---------- Test pad (simulated taps) ---------- */
+  function buildPad() {
+    const sel = $("padCode");
+    sel.innerHTML = [1, 2, 3, 4].map(r =>
+      '<optgroup label="' + (r === 4 ? "Ring 4 (wardens)" : "Ring " + r) + '">' +
+      Object.values(CODES).filter(c => c.ring === r).map(c => '<option value="' + c.code + '">' + longLabel(c.code) + "</option>").join("") +
+      "</optgroup>").join("");
+    $("pad").addEventListener("click", e => {
+      const b = e.target.closest("button[data-tile]");
+      if (!b) return;
+      const code = sel.value;
+      testTag("sim-" + code + "-" + b.dataset.tile, PREFIX + code);
+    });
+  }
+
+  /* ---------- NFC ---------- */
+  async function startNFC() {
+    if (!("NDEFReader" in window)) { nfcStatus = "unsupported in this browser"; return; }
+    try {
+      reader = new NDEFReader();
+      await reader.scan();
+      reader.onreading = e => {
+        let text = null;
+        try {
+          for (const rec of e.message.records) {
+            if (rec.recordType === "text") { text = new TextDecoder(rec.encoding || "utf-8").decode(rec.data); break; }
+          }
+        } catch (err) {}
+        onTag(e.serialNumber || null, text);
+      };
+      reader.onreadingerror = () => { if (dm.open) dmTag(null, null, true); };
+      nfcStatus = "scanning";
+    } catch (err) {
+      nfcStatus = "error: " + err.name + (err.message ? " (" + err.message + ")" : "");
+      say("The device will not wake. Check NFC is on.");
+    }
+  }
+
+  let wakeLock = null;
+  async function requestWake() {
+    try { if ("wakeLock" in navigator) wakeLock = await navigator.wakeLock.request("screen"); } catch (e) {}
+  }
+
+  /* ---------- DM panel ---------- */
+  function dmStatus(text) { $("dmStatus").textContent = text || ""; }
+
+  function openDM() {
+    dm.open = true; $("dm").hidden = false; $("pad").hidden = true;
+    dmStatus(""); renderDM(); buzz(40);
+  }
+  function closeDM() {
+    dm.open = false; dm.selected = null; $("dm").hidden = true; render();
+  }
+
+  function thumb(id) {
+    const src = images[id];
+    return src ? '<img src="' + src + '" alt="">' : "";
+  }
+
+  function countSerial(code, serial) {
+    Object.keys(counts).forEach(k => { if (k !== code) counts[k] = (counts[k] || []).filter(s => s !== serial); });
+    counts[code] = counts[code] || [];
+    if (!counts[code].includes(serial)) counts[code].push(serial);
+    store.set("counts", counts);
+  }
+
+  async function dmTag(serial, text, isErr) {
+    if (dm.tab === "identify") {
+      const code = parseCode(text), info = code && (CODES[code] || TOKENS[code]);
+      if (info) dmStatus(labelOf(code) + ". Code " + PREFIX + code + ". Serial " + (serial || "unknown") + ".");
+      else if (isErr) dmStatus("Unreadable or unformatted tag. Try writing it.");
+      else dmStatus("Blank or unknown tag" + (text ? ' ("' + text + '")' : "") + ". Serial " + (serial || "unknown") + ".");
+      return;
+    }
+    if (dm.tab === "write") {
+      if (!dm.selected) { dmStatus("Pick a code first."); return; }
+      if (dm.writing) return;
+      const want = PREFIX + dm.selected;
+      if (text === want) {
+        if (serial) countSerial(dm.selected, serial);
+        dmStatus("Verified: " + labelOf(dm.selected) + ".");
+        buzz(30); renderDM(); return;
+      }
+      if (!reader) { dmStatus("NFC is not running on this device."); return; }
+      dm.writing = true;
+      dmStatus("Writing. Hold the tile still.");
+      try {
+        await reader.write({ records: [{ recordType: "text", data: want, lang: "en" }] });
+        if (serial) {
+          countSerial(dm.selected, serial);
+          dmStatus("Written: " + labelOf(dm.selected) + ".");
+        } else {
+          dmStatus("Written. Tap the tile again to confirm and count it.");
+        }
+        sfx("blip"); buzz(50);
+      } catch (err) {
+        dmStatus("Write failed (" + err.name + "). Hold the tile flat and still, then tap again.");
+      } finally {
+        dm.writing = false; renderDM();
+      }
+      return;
+    }
+    dmStatus("Close this panel to run tests. Tags are read here only on Write tags and Identify.");
+  }
+
+  function renderDM() {
+    document.querySelectorAll("#tabs button").forEach(b => b.classList.toggle("on", b.dataset.tab === dm.tab));
+    const body = $("dmBody");
+    let h = "";
+
+    if (dm.tab === "images") {
+      const cell = (id, label) =>
+        '<div class="cell" data-up="' + id + '"><div class="th">' + (images[id] ? thumb(id) : "+") + "</div><div>" + label + "</div>" +
+        (images[id] ? '<button class="x" data-rm="' + id + '" aria-label="Remove">×</button>' : "") + "</div>";
+      h += '<p class="note">Tap a square to load the glyph for that value. Inner glyphs are shared across rings 1 to 3. Images are shrunk and saved on this phone, so export a backup from Settings once they are all loaded.</p>';
+      h += "<h3>Inner runes</h3><div class=\"grid\">" + INNER_GLYPHS.map(v => cell("i" + v, fmt(v))).join("") + "</div>";
+      h += "<h3>Wardens</h3><div class=\"grid\">" + WARD_GLYPHS.map(v => cell("w" + v, fmt(v))).join("") + "</div>";
+    }
+
+    if (dm.tab === "write") {
+      const total = Object.values(counts).reduce((s, a) => s + a.length, 0);
+      h += '<p class="note">Pick a code, then tap each tile that carries it. A tile that already holds the code is counted without being rewritten. ' + total + " of 64 tiles written.</p>";
+      [1, 2, 3, 4].forEach(r => {
+        h += "<h3>" + (r === 4 ? "Ring 4 (wardens)" : "Ring " + r) + "</h3>";
+        Object.values(CODES).filter(c => c.ring === r).forEach(c => {
+          const n = (counts[c.code] || []).length;
+          h += '<button class="wrow ' + (dm.selected === c.code ? "on " : "") + (n === 2 ? "done " : "") + (n > 2 ? "over " : "") + '" data-code="' + c.code + '">' +
+               '<span class="th sm">' + thumb(glyphOf(c)) + '</span><span class="wl">' + fmt(c.v) + '</span><span class="wc">' + PREFIX + c.code + '</span><span class="wn">' + n + "/2</span></button>";
+        });
+      });
+      h += "<h3>Mode tokens (optional)</h3>";
+      h += '<p class="note">Write these on two spare tags. Tapping one to the phone switches testers, so the phone can stay face down.</p>';
+      Object.keys(TOKENS).forEach(t => {
+        const n = (counts[t] || []).length;
+        h += '<button class="wrow ' + (dm.selected === t ? "on " : "") + '" data-code="' + t + '"><span class="wl">' + TOKENS[t] + '</span><span class="wc">' + PREFIX + t + '</span><span class="wn">' + n + "</span></button>";
+      });
+      h += '<button class="danger" id="clearCounts">Clear all counts</button>';
+    }
+
+    if (dm.tab === "identify") {
+      h += '<p class="note">Tap any tile to see its code, ring, value, and serial number.</p>';
+    }
+
+    if (dm.tab === "key") {
+      const kv = (prefix, v) => v == null ? "·" : '<span class="kv"><span class="th">' + thumb(prefix + v) + "</span>" + fmt(v) + "</span>";
+      h += '<p class="note">Clockwise from the dawn notch. Spokes 9 to 16 repeat spokes 1 to 8.</p>';
+      h += "<table><tr><th>Spoke</th><th>Ring 1</th><th>Ring 2</th><th>Ring 3</th><th>Warden</th></tr>";
+      SPOKES.forEach((s, i) => {
+        h += "<tr><td>" + (i + 1) + "</td><td>" + kv("i", s.r1) + "</td><td>" + kv("i", s.r2) + "</td><td>" + s.r3.map(v => kv("i", v)).join("") + "</td><td>" + kv("w", s.w) + "</td></tr>";
+      });
+      h += "</table>";
+    }
+
+    if (dm.tab === "log") {
+      if (!log.length) h += '<p class="note">No tests yet.</p>';
+      log.forEach(e => {
+        const time = new Date(e.t).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+        let line, cls, res;
+        if (e.m === "fire") {
+          line = "Fire: " + e.tiles.map(shortLabel).join(" vs ");
+          res = e.res === "left" ? "first stronger" : e.res === "right" ? "second stronger" : "equal";
+          cls = "res-gold";
+        } else {
+          line = "Warding: " + e.tiles.slice(0, 3).map(shortLabel).join(" + ") + " vs " + shortLabel(e.tiles[3]);
+          res = e.res + ", " + fmt(e.sum) + " against " + fmt(e.w);
+          cls = "res-" + e.res;
+        }
+        h += '<div class="logrow"><div class="t">' + time + "</div>" + esc(line) + ' <span class="' + cls + '">' + esc(res) + "</span></div>";
+      });
+      if (log.length) h += '<button class="danger" id="clearLog">Clear log</button>';
+    }
+
+    if (dm.tab === "settings") {
+      h += '<div class="set"><span>Sound</span><input type="checkbox" id="setSound" ' + (mute ? "" : "checked") + "></div>";
+      h += '<div class="set"><span>Test pad (simulated taps)</span><input type="checkbox" id="setPad" ' + (padOn ? "checked" : "") + "></div>";
+      h += '<div class="set"><span>NFC</span><span style="color:var(--muted)">' + esc(nfcStatus) + "</span></div>";
+      h += '<div class="btns"><button class="btn" id="rearm">Restart scanner</button></div>';
+      h += "<h3>Rune image backup</h3>";
+      h += '<div class="btns"><button class="btn" id="exportImg">Export images</button><button class="btn" id="importImg">Import images</button></div>';
+    }
+
+    body.innerHTML = h;
+  }
+
+  function fileToDataURL(file) {
+    return new Promise((resolve, reject) => {
+      const url = URL.createObjectURL(file);
+      const img = new Image();
+      img.onload = () => {
+        const s = Math.min(1, 256 / Math.max(img.width, img.height));
+        const c = document.createElement("canvas");
+        c.width = Math.max(1, Math.round(img.width * s));
+        c.height = Math.max(1, Math.round(img.height * s));
+        c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+        URL.revokeObjectURL(url);
+        let out = c.toDataURL("image/webp", 0.9);
+        if (!out.startsWith("data:image/webp")) out = c.toDataURL("image/png");
+        resolve(out);
+      };
+      img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("Could not read image")); };
+      img.src = url;
+    });
+  }
+
+  function saveImages() {
+    if (!store.set("images", images)) { dmStatus("Phone storage is full. Use smaller images."); return false; }
+    return true;
+  }
+
+  /* ---------- Wiring ---------- */
+  function init() {
+    const supported = "NDEFReader" in window;
+    if (!supported) { $("support").textContent = "No NFC here"; $("support").hidden = false; }
+
+    $("wakeBtn").addEventListener("click", async () => {
+      goFull();
+      try { audio(); } catch (e) {}
+      sfx("wake");
+      $("wake").hidden = true; $("app").hidden = false;
+      render();
+      await startNFC();
+      requestWake();
+    });
+
+    // Gems: tap a ruby to switch testers, tap the quartz to clear, hold any gem to open the DM tools
+    document.querySelectorAll(".gem").forEach(g => {
+      let timer = null, held = false;
+      g.addEventListener("pointerdown", () => { held = false; timer = setTimeout(() => { held = true; openDM(); }, 1200); });
+      ["pointerup", "pointerleave", "pointercancel"].forEach(ev => g.addEventListener(ev, () => clearTimeout(timer)));
+      g.addEventListener("contextmenu", e => e.preventDefault());
+      g.addEventListener("click", e => {
+        if (held) { e.preventDefault(); held = false; return; }
+        if (g.dataset.mode) { if (g.dataset.mode !== mode) sfx("switch"); setMode(g.dataset.mode); }
+        else { clearTest(); render(); }
+      });
+    });
+
+    $("dmClose").addEventListener("click", closeDM);
+    $("tabs").addEventListener("click", e => {
+      const b = e.target.closest("button[data-tab]");
+      if (!b) return;
+      dm.tab = b.dataset.tab; dm.selected = null; dmStatus(""); renderDM();
+    });
+
+    $("dmBody").addEventListener("click", e => {
+      const rm = e.target.closest("[data-rm]");
+      if (rm) { e.stopPropagation(); delete images[rm.dataset.rm]; saveImages(); renderDM(); return; }
+      const up = e.target.closest("[data-up]");
+      if (up) { $("imgFile").dataset.glyph = up.dataset.up; $("imgFile").click(); return; }
+      const w = e.target.closest("[data-code]");
+      if (w) { dm.selected = w.dataset.code; dmStatus("Tap a tile to write " + labelOf(dm.selected) + "."); renderDM(); return; }
+      const id = e.target.id;
+      if (id === "clearCounts" && confirm("Clear all write counts? Tags keep their codes.")) { counts = {}; store.set("counts", counts); renderDM(); }
+      if (id === "clearLog" && confirm("Clear the test log?")) { log = []; store.set("log", log); renderDM(); }
+      if (id === "rearm") { startNFC().then(() => { renderDM(); dmStatus("Scanner: " + nfcStatus + "."); }); }
+      if (id === "exportImg") {
+        const blob = new Blob([JSON.stringify({ summerStarImages: images })], { type: "application/json" });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob); a.download = "summer-star-runes.json";
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+      }
+      if (id === "importImg") $("jsonFile").click();
+    });
+
+    $("dmBody").addEventListener("change", e => {
+      if (e.target.id === "setSound") { mute = !e.target.checked; store.set("mute", mute); }
+      if (e.target.id === "setPad") { padOn = e.target.checked; store.set("pad", padOn); render(); }
+    });
+
+    $("imgFile").addEventListener("change", async e => {
+      const file = e.target.files[0], id = e.target.dataset.glyph;
+      e.target.value = "";
+      if (!file || !id) return;
+      try {
+        const prev = images[id];
+        images[id] = await fileToDataURL(file);
+        if (!saveImages()) { if (prev) images[id] = prev; else delete images[id]; }
+        renderDM(); render();
+      } catch (err) { dmStatus("That image could not be read."); }
+    });
+
+    $("jsonFile").addEventListener("change", async e => {
+      const file = e.target.files[0];
+      e.target.value = "";
+      if (!file) return;
+      try {
+        const data = JSON.parse(await file.text());
+        const incoming = data.summerStarImages || {};
+        const backup = Object.assign({}, images);
+        Object.assign(images, incoming);
+        if (!saveImages()) images = backup;
+        else dmStatus("Imported " + Object.keys(incoming).length + " images.");
+        renderDM(); render();
+      } catch (err) { dmStatus("That file is not a rune image backup."); }
+    });
+
+    // Fullscreen: entered on Wake, and re-entered on the next tap if Android drops it
+    function goFull() {
+      const el = document.documentElement;
+      if (document.fullscreenElement || !el.requestFullscreen) return;
+      el.requestFullscreen({ navigationUI: "hide" }).catch(() => {});
+    }
+    document.addEventListener("click", () => { if (!$("app").hidden && !dm.open) goFull(); });
+
+    // Offline support and home-screen install when served over https
+    if ("serviceWorker" in navigator && location.protocol === "https:") {
+      navigator.serviceWorker.register("sw.js").catch(() => {});
+    }
+
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible" && !$("app").hidden) requestWake();
+    });
+
+    buildPad();
+  }
+
+  init();
+})();
+</script>
+</body>
+</html>
